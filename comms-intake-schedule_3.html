@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Communications Intake &amp; Schedule</title>
+<style>
+  :root{
+    --bg:#f7f8fa; --panel:#ffffff; --ink:#14161a; --ink-2:#4b5159; --ink-3:#787f89;
+    --line:#e3e6ea; --line-2:#eef0f3; --accent:#2f5bd7; --accent-soft:#eaf0fe;
+    --t-internal:#2f5bd7; --t-marketing:#b45309; --t-social:#0e7490; --t-press:#a4266b; --t-exec:#6d4aab; --t-events:#059669;
+    --t-internal-bg:#e9f0ff; --t-marketing-bg:#fdf1e0; --t-social-bg:#e2f2f6;
+    --t-press-bg:#fbebf3; --t-exec-bg:#f1ebfb; --t-events-bg:#ecfdf5;
+    --ok:#15803d; --ok-bg:#e6f4ea; --warn:#a16207; --warn-bg:#fdf6e0;
+    --stop:#b42318; --stop-bg:#fdeceb; --mute:#5b6270; --mute-bg:#eef0f3;
+    --radius:10px; --shadow:0 1px 2px rgba(16,24,40,.05),0 1px 3px rgba(16,24,40,.06);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--ink);
+    font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1240px;margin:0 auto;padding:24px 20px 72px}
+  header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+  h1{font-size:20px;line-height:1.2;margin:0 0 4px;letter-spacing:-.01em}
+  .sub{color:var(--ink-3);font-size:13px;margin:0}
+  .tabs{display:flex;gap:2px;background:#eceff3;padding:3px;border-radius:9px}
+  .tab{border:0;background:transparent;font:inherit;font-weight:500;color:var(--ink-2);
+       padding:7px 15px;border-radius:7px;cursor:pointer}
+  .tab[aria-selected="true"]{background:var(--panel);color:var(--ink);box-shadow:var(--shadow)}
+  .tab:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+  .card-h{padding:14px 18px;border-bottom:1px solid var(--line-2);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .card-h h2{font-size:14px;margin:0;font-weight:600}
+  .card-b{padding:18px}
+
+  /* form */
+  form fieldset{border:0;margin:0 0 22px;padding:0}
+  form legend{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);padding:0 0 10px}
+  .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 18px}
+  .full{grid-column:1/-1}
+  label.f{display:block;font-size:12.5px;font-weight:600;color:var(--ink-2);margin-bottom:5px}
+  .req::after{content:" *";color:#b42318;font-weight:700}
+  input[type=text],input[type=date],select,textarea{
+    width:100%;padding:8px 10px;border:1px solid #d3d8df;border-radius:7px;background:#fff;
+    font:inherit;color:var(--ink)}
+  textarea{min-height:78px;resize:vertical}
+  input:focus,select:focus,textarea:focus{outline:0;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  .hint{font-size:11.5px;color:var(--ink-3);margin-top:4px}
+  .err{border-color:#e0908a !important;background:#fffaf9}
+  .errmsg{color:#b42318;font-size:11.5px;margin-top:4px;display:none}
+  .errmsg.on{display:block}
+  .checkrow{display:flex;align-items:flex-start;gap:9px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:#fbfcfd}
+  .checkrow input{margin-top:2px}
+  .checkrow span{font-size:13px;color:var(--ink-2)}
+  /* conditional sections */
+  fieldset.cond{border-left:3px solid var(--line);padding-left:14px;margin-left:1px}
+  fieldset.cond[hidden]{display:none}
+  fieldset.cond.social{border-left-color:var(--t-social)}
+  fieldset.cond.press{border-left-color:var(--t-press)}
+  fieldset.cond legend{color:var(--ink-2)}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{display:inline-flex;align-items:center;gap:7px;border:1px solid #d3d8df;border-radius:999px;
+        padding:6px 13px 6px 10px;font-size:12.5px;font-weight:600;color:var(--ink-2);cursor:pointer;background:#fff}
+  .chip input{margin:0;width:auto}
+  .chip:has(input:checked){border-color:var(--t-social);background:var(--t-social-bg);color:var(--t-social)}
+  .chip:focus-within{box-shadow:0 0 0 3px var(--accent-soft)}
+  .platlist{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}
+  /* attachments */
+  .drop{border:1.5px dashed #ccd3db;border-radius:9px;background:#fbfcfd;padding:16px;text-align:center}
+  .drop.over{border-color:var(--accent);background:var(--accent-soft)}
+  .drop p{margin:0;font-size:13px;color:var(--ink-2)}
+  .drop .tiny{font-size:11.5px;color:var(--ink-3);margin-top:4px}
+  .drop input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+  .linkbtn{background:none;border:0;padding:0;font:inherit;font-weight:600;color:var(--accent);
+           cursor:pointer;text-decoration:underline}
+  .files{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:7px}
+  .files li{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:8px;
+            padding:7px 9px;background:#fff}
+  .thumb{width:34px;height:34px;border-radius:6px;object-fit:cover;flex:0 0 auto;border:1px solid var(--line-2)}
+  .ficon{width:34px;height:34px;border-radius:6px;flex:0 0 auto;display:grid;place-items:center;
+         background:var(--mute-bg);color:var(--ink-3);font-size:10px;font-weight:700;letter-spacing:.03em}
+  .fmeta{min-width:0;flex:1;display:flex;flex-direction:column;gap:1px}
+  .fname{font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .fsize{font-size:11.5px;color:var(--ink-3)}
+  .clip{display:inline-flex;align-items:center;gap:3px;font-size:11.5px;color:var(--ink-3);font-weight:600}
+  .att-grid{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+  .att-grid a{color:var(--accent);font-weight:600;text-decoration:none;font-size:12.5px}
+  .att-grid a:hover{text-decoration:underline}
+  .att-img{max-width:100%;max-height:240px;object-fit:contain;object-position:left top;
+           border-radius:8px;border:1px solid var(--line-2);display:block;margin-top:4px;background:#fafbfc}
+  .actions{display:flex;gap:10px;align-items:center;padding-top:4px;flex-wrap:wrap}
+  .btn{font:inherit;font-weight:600;border-radius:8px;padding:9px 16px;cursor:pointer;border:1px solid transparent}
+  .btn-p{background:var(--accent);color:#fff}
+  .btn-p:hover{background:#2749b4}
+  .btn-s{background:#fff;border-color:#d3d8df;color:var(--ink-2)}
+  .btn-s:hover{background:#f4f6f8}
+  .btn-d{background:#fff;border-color:#e6b4af;color:#b42318}
+  .btn-d:hover{background:#fdeceb}
+  .btn-xs{padding:4px 9px;font-size:12px;font-weight:600;border-radius:6px}
+  .btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .flash{display:none;margin-bottom:16px;padding:10px 14px;border-radius:8px;background:var(--ok-bg);
+         color:#14532d;border:1px solid #bfe0c8;font-size:13px}
+  .flash.on{display:block}
+
+  /* pills */
+  .pill{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;
+        padding:2px 8px;border-radius:999px;white-space:nowrap;line-height:1.55}
+  .dot{width:7px;height:7px;border-radius:50%;flex:0 0 auto}
+
+  /* calendar */
+  .cal-nav{display:flex;align-items:center;gap:8px}
+  .cal-title{font-weight:600;min-width:150px;text-align:center}
+  .iconbtn{border:1px solid #d3d8df;background:#fff;border-radius:7px;width:30px;height:30px;
+           cursor:pointer;font:inherit;color:var(--ink-2);line-height:1}
+  .iconbtn:hover{background:#f4f6f8}
+  .cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border-top:1px solid var(--line-2);border-left:1px solid var(--line-2)}
+  .cal .dow{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);
+            padding:8px 8px;border-right:1px solid var(--line-2);border-bottom:1px solid var(--line-2);background:#fafbfc}
+  .day{min-height:108px;border-right:1px solid var(--line-2);border-bottom:1px solid var(--line-2);
+       padding:6px;display:flex;flex-direction:column;gap:4px;background:#fff}
+  .day.out{background:#fafbfc}
+  .daynum{font-size:12px;font-weight:600;color:var(--ink-2);align-self:flex-start;
+          width:22px;height:22px;display:grid;place-items:center;border-radius:50%}
+  .day.out .daynum{color:#b9bfc7}
+  .day.today .daynum{background:var(--accent);color:#fff}
+  .ev{border:0;text-align:left;font:inherit;font-size:11.5px;font-weight:500;padding:3px 6px;border-radius:5px;
+      cursor:pointer;width:100%;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+      border-left:3px solid transparent}
+  .ev:hover{filter:brightness(.96)}
+  .ev.cancelled{text-decoration:line-through;opacity:.55}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--ink-2)}
+
+  /* table */
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:12px 18px;border-bottom:1px solid var(--line-2);background:#fafbfc;border-radius:var(--radius) var(--radius) 0 0}
+  .toolbar select,.toolbar input{width:auto;padding:6px 9px;font-size:13px;border-radius:7px;border:1px solid #d3d8df;background:#fff}
+  .toolbar input[type=text]{min-width:150px;flex:1 1 170px;max-width:240px}
+  .spacer{flex:1}
+  .tablewrap{overflow-x:auto}
+  table{border-collapse:collapse;width:100%;font-size:13px}
+  th{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);text-align:left;
+     padding:9px 12px;border-bottom:1px solid var(--line);white-space:nowrap;background:#fff;position:sticky;top:0}
+  th.sortable{cursor:pointer;user-select:none}
+  th.sortable:hover{color:var(--ink)}
+  th .arrow{opacity:.45;font-size:9px;margin-left:3px}
+  td{padding:10px 12px;border-bottom:1px solid var(--line-2);vertical-align:top}
+  tbody tr:hover{background:#fafbfd}
+  .t-title{font-weight:600;color:var(--ink)}
+  .t-desc{color:var(--ink-3);font-size:12px;margin-top:2px;max-width:330px}
+  .nowrap{white-space:nowrap}
+  .empty{padding:44px 18px;text-align:center;color:var(--ink-3)}
+  .count{font-size:12px;color:var(--ink-3)}
+
+  /* modal */
+  .scrim{position:fixed;inset:0;background:rgba(16,24,40,.45);display:none;align-items:flex-start;
+         justify-content:center;padding:6vh 16px;z-index:40;overflow:auto}
+  .scrim.on{display:flex}
+  .modal{background:#fff;border-radius:12px;max-width:560px;width:100%;box-shadow:0 20px 40px rgba(16,24,40,.22)}
+  .modal-h{padding:16px 20px;border-bottom:1px solid var(--line-2);display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+  .modal-h h3{margin:0 0 6px;font-size:16px;line-height:1.3}
+  .modal-b{padding:18px 20px}
+  .modal-f{padding:14px 20px;border-top:1px solid var(--line-2);display:flex;gap:10px;justify-content:flex-end;background:#fafbfc;border-radius:0 0 12px 12px}
+  dl.kv{display:grid;grid-template-columns:130px 1fr;gap:9px 16px;margin:0}
+  dl.kv dt{font-size:12px;font-weight:600;color:var(--ink-3)}
+  dl.kv dd{margin:0;font-size:13px}
+  .x{border:0;background:transparent;font-size:20px;line-height:1;cursor:pointer;color:var(--ink-3);padding:2px 6px}
+  .x:hover{color:var(--ink)}
+  .banner{margin-top:14px;padding:9px 12px;border-radius:8px;font-size:12.5px;background:var(--warn-bg);color:#713f12;border:1px solid #ecd9a2}
+  .storage-note{font-size:11.5px;color:var(--ink-3);margin-top:14px;text-align:center}
+  .qr-container{display:flex;align-items:center;gap:12px;padding:12px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;margin:12px 0}
+  .qr-box{width:140px;height:140px;background:#fff;border:2px solid #e5e7eb;display:grid;place-items:center;flex:0 0 auto}
+  .qr-box img{width:100%;height:100%;object-fit:contain}
+  .link-group{display:flex;gap:8px;align-items:flex-start}
+  .link-input{flex:1;padding:8px 10px;border:1px solid #d3d8df;border-radius:7px;font:11px monospace;word-break:break-all;background:#fafbfc;max-height:60px;overflow-y:auto}
+  .copy-btn{padding:6px 12px;font-size:12px;background:#f0f4f8;border:1px solid #d3d8df;border-radius:6px;cursor:pointer;white-space:nowrap;font-weight:600}
+  .copy-btn:hover{background:#e8ecf1}
+  .copy-btn.copied{background:#d4f4dd;border-color:#86efac;color:#166534}
+  #approvalView{display:none}
+  #approvalView.active{display:block}
+  .approval-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);max-width:500px;margin:0 auto;padding:24px}
+  .approval-title{font-size:18px;font-weight:600;margin-bottom:8px}
+  .approval-meta{font-size:13px;color:var(--ink-2);margin-bottom:20px}
+  .approval-buttons{display:flex;gap:12px;margin-top:20px}
+  .approval-buttons button{flex:1}
+  @media(max-width:720px){
+    .grid2{grid-template-columns:1fr}
+    .day{min-height:76px}
+    dl.kv{grid-template-columns:1fr;gap:2px 0}
+    dl.kv dd{margin-bottom:8px}
+    .qr-container{flex-direction:column}
+    .qr-box{width:120px;height:120px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- approval view (shown when opened via link) -->
+  <section id="approvalView" role="tabpanel">
+    <div class="card" style="max-width:600px;margin:0 auto;margin-top:40px">
+      <div class="card-b">
+        <div class="approval-card" id="approvalContent"></div>
+      </div>
+    </div>
+  </section>
+
+  <header class="top" id="mainHeader">
+    <div>
+      <h1>Communications Intake &amp; Schedule</h1>
+      <p class="sub">Submit upcoming comms, then view the schedule by calendar or grid.</p>
+    </div>
+    <div class="tabs" role="tablist" aria-label="Views">
+      <button class="tab" role="tab" id="tab-form" aria-controls="v-form" aria-selected="true">Intake form</button>
+      <button class="tab" role="tab" id="tab-cal" aria-controls="v-cal" aria-selected="false">Calendar</button>
+      <button class="tab" role="tab" id="tab-grid" aria-controls="v-grid" aria-selected="false">Grid</button>
+    </div>
+  </header>
+
+  <!-- ===== INTAKE FORM ===== -->
+  <section id="v-form" role="tabpanel" aria-labelledby="tab-form">
+    <div id="flash" class="flash" role="status"></div>
+    <div class="card">
+      <div class="card-h">
+        <h2 id="formHeading">New communication request</h2>
+        <button class="btn btn-s btn-xs" id="cancelEdit" style="display:none">Cancel edit</button>
+      </div>
+      <div class="card-b">
+        <form id="intake" novalidate>
+          <input type="hidden" id="f-id">
+
+          <fieldset>
+            <legend>The communication</legend>
+            <div class="grid2">
+              <div class="full">
+                <label class="f req" for="f-title">Title</label>
+                <input type="text" id="f-title" maxlength="120" placeholder="e.g. Q4 All-Hands announcement">
+                <div class="errmsg" id="e-title">Give the communication a title.</div>
+              </div>
+              <div>
+                <label class="f req" for="f-type">Content type</label>
+                <select id="f-type">
+                  <option value="">Select…</option>
+                  <option>Internal employee comms</option>
+                  <option>Marketing campaign</option>
+                  <option>Social media</option>
+                  <option>External / press</option>
+                  <option>Executive / leadership</option>
+                  <option>Events</option>
+                </select>
+                <div class="errmsg" id="e-type">Pick a content type.</div>
+              </div>
+              <div>
+                <label class="f req" for="f-channel">Channel</label>
+                <select id="f-channel">
+                  <option value="">Select…</option>
+                  <option>Email</option><option>Slack</option><option>All-hands / town hall</option>
+                  <option>Intranet / Confluence</option><option>Newsletter</option><option>Blog</option>
+                  <option>Social (LinkedIn/X)</option><option>Press release</option>
+                  <option>Webinar / event</option><option>In-product</option><option>Other</option>
+                </select>
+                <div class="errmsg" id="e-channel">Pick a channel.</div>
+              </div>
+              <div>
+                <label class="f req" for="f-audience">Audience</label>
+                <select id="f-audience">
+                  <option value="">Select…</option>
+                  <option>All employees</option><option>Leadership / managers</option>
+                  <option>Specific department</option><option>New hires</option>
+                  <option>Customers</option><option>Prospects</option>
+                  <option>Partners</option><option>Press / analysts</option><option>Public</option>
+                </select>
+                <div class="errmsg" id="e-audience">Pick an audience.</div>
+              </div>
+              <div>
+                <label class="f req" for="f-date">Target send date</label>
+                <input type="date" id="f-date">
+                <div class="errmsg" id="e-date">Choose a target send date.</div>
+              </div>
+              <div>
+                <label class="f" for="f-enddate">End date (if multi-day)</label>
+                <input type="date" id="f-enddate">
+                <div class="errmsg" id="e-enddate">End date must be on or after the send date.</div>
+              </div>
+              <div class="full">
+                <label class="f" for="f-desc">Description / key message</label>
+                <textarea id="f-desc" maxlength="600" placeholder="What is being communicated, and why now?"></textarea>
+                <div class="hint">One or two sentences is plenty.</div>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset class="cond social" id="fs-social" hidden>
+            <legend>Social post details</legend>
+            <div class="grid2">
+              <div class="full" role="group" aria-labelledby="plat-label">
+                <span class="f req" id="plat-label" style="display:block">Platforms</span>
+                <div class="chips" id="platforms"></div>
+                <div class="errmsg" id="e-platforms">Pick at least one platform.</div>
+              </div>
+              <div>
+                <label class="f" for="f-posttime">Post time</label>
+                <input type="time" id="f-posttime">
+                <div class="hint">Local time. Leave blank if timing is flexible.</div>
+              </div>
+              <div>
+                <label class="f" for="f-paid">Organic or paid</label>
+                <select id="f-paid">
+                  <option>Organic</option>
+                  <option>Boosted</option>
+                  <option>Paid campaign</option>
+                </select>
+              </div>
+              <div id="wrap-budget" hidden>
+                <label class="f" for="f-budget">Budget</label>
+                <input type="text" id="f-budget" maxlength="40" placeholder="e.g. $2,500">
+              </div>
+              <div class="full">
+                <label class="f" for="f-segment">Target audience segment</label>
+                <input type="text" id="f-segment" maxlength="160"
+                       placeholder="e.g. City &amp; county finance directors, US, 5k+ population">
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset class="cond press" id="fs-press" hidden>
+            <legend>Press &amp; media details</legend>
+            <div class="grid2">
+              <div>
+                <label class="f req" for="f-release">Release type</label>
+                <select id="f-release">
+                  <option value="">Select…</option>
+                  <option>Press release</option>
+                  <option>Media advisory</option>
+                  <option>Media pitch</option>
+                  <option>Statement / response</option>
+                  <option>Byline / op-ed</option>
+                  <option>Interview / briefing</option>
+                  <option>Award or list submission</option>
+                </select>
+                <div class="errmsg" id="e-release">Pick a release type.</div>
+              </div>
+              <div>
+                <label class="f req" for="f-dist">Distribution</label>
+                <select id="f-dist">
+                  <option value="">Select…</option>
+                  <option>Newswire — Business Wire</option>
+                  <option>Newswire — PR Newswire</option>
+                  <option>Direct to media list</option>
+                  <option>Newsroom / website only</option>
+                  <option>Exclusive to one outlet</option>
+                  <option>No distribution (reactive only)</option>
+                </select>
+                <div class="errmsg" id="e-dist">Pick a distribution path.</div>
+              </div>
+              <div class="full">
+                <div class="checkrow">
+                  <input type="checkbox" id="f-embargo">
+                  <label for="f-embargo"><span>This news is under embargo</span></label>
+                </div>
+              </div>
+              <div id="wrap-embargo-date" hidden>
+                <label class="f req" for="f-embargodate">Embargo lifts (date)</label>
+                <input type="date" id="f-embargodate">
+                <div class="errmsg" id="e-embargodate">Set the date the embargo lifts.</div>
+              </div>
+              <div id="wrap-embargo-time" hidden>
+                <label class="f" for="f-embargotime">Embargo lifts (time)</label>
+                <input type="time" id="f-embargotime">
+                <div class="hint">Local time. e.g. 06:00 for a morning wire drop.</div>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Ownership</legend>
+            <div class="grid2">
+              <div>
+                <label class="f req" for="f-requester">Requested by</label>
+                <input type="text" id="f-requester" maxlength="80" placeholder="Name">
+                <div class="errmsg" id="e-requester">Who is requesting this?</div>
+              </div>
+              <div>
+                <label class="f" for="f-owner">Comms owner</label>
+                <input type="text" id="f-owner" maxlength="80" placeholder="Who is drafting / sending">
+              </div>
+              <div>
+                <label class="f req" for="f-status">Status</label>
+                <select id="f-status">
+                  <option>Draft</option><option>In review</option><option>Approved</option>
+                  <option>Scheduled</option><option>Sent</option><option>Cancelled</option>
+                </select>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Attachments &amp; assets</legend>
+            <div class="grid2">
+              <div class="full">
+                <label class="f" for="f-link">Link to draft or asset folder</label>
+                <input type="text" id="f-link" maxlength="400" placeholder="https://docs.google.com/… or a Confluence / Drive link">
+                <div class="hint">Best option for anything large or still being edited.</div>
+              </div>
+              <div class="full">
+                <label class="f" for="f-files">Attach a document or image</label>
+                <div class="drop" id="drop">
+                  <input type="file" id="f-files" multiple
+                         accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.md">
+                  <p>Drag files here, or <button type="button" class="linkbtn" id="browseBtn">browse</button></p>
+                  <p class="tiny">Images, PDF, Word, Excel, PowerPoint, text. Up to 5 files, 4 MB each.</p>
+                </div>
+                <ul class="files" id="fileList"></ul>
+                <div class="errmsg" id="e-files"></div>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Review &amp; approval</legend>
+            <div class="grid2">
+              <div>
+                <label class="f" for="f-approver">Approver</label>
+                <input type="text" id="f-approver" maxlength="80" placeholder="Name or role">
+              </div>
+              <div>
+                <label class="f" for="f-reviewdate">Review deadline</label>
+                <input type="date" id="f-reviewdate">
+                <div class="errmsg" id="e-reviewdate">Review deadline can't be after the send date.</div>
+              </div>
+              <div>
+                <label class="f" for="f-approval">Approval status</label>
+                <select id="f-approval">
+                  <option>Not started</option><option>Pending approver</option>
+                  <option>Approved</option><option>Changes requested</option>
+                </select>
+              </div>
+              <div class="full">
+                <div class="checkrow">
+                  <input type="checkbox" id="f-legal">
+                  <label for="f-legal"><span>Needs legal / compliance review before it goes out</span></label>
+                </div>
+              </div>
+            </div>
+          </fieldset>
+
+          <div class="actions">
+            <button type="submit" class="btn btn-p" id="submitBtn">Submit request</button>
+            <button type="button" class="btn btn-s" id="resetBtn">Clear form</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <p class="storage-note" id="storageNote"></p>
+  </section>
+
+  <!-- ===== CALENDAR ===== -->
+  <section id="v-cal" role="tabpanel" aria-labelledby="tab-cal" hidden>
+    <div class="card">
+      <div class="card-h">
+        <div class="cal-nav">
+          <button class="iconbtn" id="prevM" aria-label="Previous month">&#8249;</button>
+          <span class="cal-title" id="calTitle"></span>
+          <button class="iconbtn" id="nextM" aria-label="Next month">&#8250;</button>
+          <button class="btn btn-s btn-xs" id="todayBtn" style="margin-left:6px">Today</button>
+        </div>
+        <div class="legend" id="legend"></div>
+      </div>
+      <div class="card-b" style="padding:0 0 0 0">
+        <div class="cal" id="cal"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== GRID ===== -->
+  <section id="v-grid" role="tabpanel" aria-labelledby="tab-grid" hidden>
+    <div class="card">
+      <div class="toolbar">
+        <input type="text" id="q" placeholder="Search title, owner, requester…" aria-label="Search">
+        <select id="fType" aria-label="Filter by type"><option value="">All types</option></select>
+        <select id="fStatus" aria-label="Filter by status"><option value="">All statuses</option></select>
+        <select id="fChannel" aria-label="Filter by channel"><option value="">All channels</option></select>
+        <select id="fPlatform" aria-label="Filter by social platform"><option value="">All platforms</option></select>
+        <select id="fWindow" aria-label="Filter by date window">
+          <option value="upcoming">Upcoming only</option>
+          <option value="all">All dates</option>
+          <option value="30">Next 30 days</option>
+          <option value="90">Next 90 days</option>
+          <option value="past">Past</option>
+        </select>
+        <span class="spacer"></span>
+        <span class="count" id="rowCount"></span>
+        <button class="btn btn-s btn-xs" id="exportBtn">Export CSV</button>
+      </div>
+      <div class="tablewrap">
+        <table id="tbl">
+          <thead>
+            <tr>
+              <th class="sortable" data-k="sendDate">Send date <span class="arrow">▾</span></th>
+              <th class="sortable" data-k="title">Communication <span class="arrow"></span></th>
+              <th class="sortable" data-k="type">Type <span class="arrow"></span></th>
+              <th class="sortable" data-k="channel">Channel <span class="arrow"></span></th>
+              <th class="sortable" data-k="audience">Audience <span class="arrow"></span></th>
+              <th class="sortable" data-k="owner">Owner <span class="arrow"></span></th>
+              <th class="sortable" data-k="status">Status <span class="arrow"></span></th>
+              <th class="sortable" data-k="approvalStatus">Approval <span class="arrow"></span></th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+      <div class="empty" id="gridEmpty" style="display:none">No communications match these filters.</div>
+    </div>
+  </section>
+</div>
+
+<!-- detail modal -->
+<div class="scrim" id="scrim" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+  <div class="modal">
+    <div class="modal-h">
+      <div>
+        <h3 id="mTitle"></h3>
+        <div id="mPills" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+      </div>
+      <button class="x" id="mClose" aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-b" id="mBody"></div>
+    <div class="modal-f">
+      <button class="btn btn-d btn-xs" id="mDelete">Delete</button>
+      <button class="btn btn-s btn-xs" id="mEdit">Edit</button>
+      <button class="btn btn-p btn-xs" id="mDone">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------- storage (safe) ---------- */
+var KEY="comms-intake-v1", canPersist=true, mem=null;
+function load(){
+  try{ var r=localStorage.getItem(KEY); return r?JSON.parse(r):null; }
+  catch(e){ canPersist=false; return null; }
+}
+var quotaHit=false;
+function save(){
+  if(mem===null) return true;
+  try{ localStorage.setItem(KEY, JSON.stringify(items)); quotaHit=false; note(); return true; }
+  catch(e){
+    var isQuota = e && (e.name==="QuotaExceededError" || e.code===22 || e.code===1014);
+    if(isQuota){ quotaHit=true; } else { canPersist=false; }
+    note(); return false;
+  }
+}
+function note(){
+  var t = canPersist
+    ? "Entries are saved in this browser. Use Export CSV in the grid view to keep a shared copy."
+    : "Heads up: this browser isn't allowing saved data, so entries last only for this session. Export CSV before you close the page.";
+  if(quotaHit) t = "Storage is full — attachments take up the most room. Everything still works for this session, but delete some attachments or use the link field instead so new entries save.";
+  document.getElementById("storageNote").textContent = t;
+}
+
+/* ---------- data ---------- */
+var TYPES=["Internal employee comms","Marketing campaign","Social media","External / press","Executive / leadership","Events"];
+var TYPE_KEY={"Internal employee comms":"internal","Marketing campaign":"marketing",
+              "Social media":"social","External / press":"press","Executive / leadership":"exec","Events":"events"};
+var PLATFORMS=["LinkedIn","X (Twitter)","Facebook","Instagram","YouTube","Bluesky","Threads"];
+/* older saved entries used a combined marketing/social type */
+var TYPE_ALIAS={"Marketing & social":"Marketing campaign"};
+var STATUSES=["Draft","In review","Approved","Scheduled","Sent","Cancelled"];
+var CHANNELS=["Email","Slack","All-hands / town hall","Intranet / Confluence","Newsletter","Blog",
+              "Social (LinkedIn/X)","Press release","Webinar / event","In-product","Other"];
+
+function seed(){
+  function d(off){ var t=new Date(); t.setDate(t.getDate()+off);
+    return t.getFullYear()+"-"+pad(t.getMonth()+1)+"-"+pad(t.getDate()); }
+  return [
+    {title:"Q3 all-hands: results & FY27 priorities",type:"Executive / leadership",channel:"All-hands / town hall",
+     audience:"All employees",sendDate:d(6),requester:"Nic Marcopul",owner:"Comms team",status:"In review",
+     desc:"CEO walk-through of Q3 results plus the three FY27 company priorities.",
+     approver:"CEO chief of staff",reviewDeadline:d(2),approvalStatus:"Pending approver",legal:false,
+     assetLink:"https://drive.google.com/drive/folders/q3-all-hands",files:[]},
+    {title:"Open enrollment window opens",type:"Internal employee comms",channel:"Email",
+     audience:"All employees",sendDate:d(13),requester:"People Ops",owner:"Nic Marcopul",status:"Scheduled",
+     desc:"Benefits open enrollment dates, what's changing, and how to make elections.",
+     approver:"VP People",reviewDeadline:d(8),approvalStatus:"Approved",legal:true},
+    {title:"Product release 26.4 announcement",type:"Marketing campaign",channel:"Blog",
+     audience:"Customers",sendDate:d(20),requester:"Product marketing",owner:"Marketing",status:"Draft",
+     desc:"Launch blog covering the three headline features in the 26.4 release.",
+     approver:"Director, PMM",reviewDeadline:d(15),approvalStatus:"Not started",legal:false},
+    {title:"Customer story: county finance modernization",type:"Social media",channel:"Social (LinkedIn/X)",
+     audience:"Public",sendDate:d(27),requester:"Brand team",owner:"Marketing",status:"Draft",
+     desc:"Three-post social series built from the published customer story.",
+     approver:"Brand lead",reviewDeadline:d(21),approvalStatus:"Not started",legal:true,
+     platforms:["LinkedIn","X (Twitter)"],postTime:"09:00",paid:"Boosted",budget:"$2,500",
+     segment:"County finance directors, US"},
+    {title:"FY27 partnership announcement",type:"External / press",channel:"Press release",
+     audience:"Press / analysts",sendDate:d(17),requester:"Corp comms",owner:"Comms team",status:"In review",
+     desc:"Joint release with the partner on the expanded procurement integration.",
+     approver:"VP Corporate Comms",reviewDeadline:d(11),approvalStatus:"Pending approver",legal:true,
+     releaseType:"Press release",distribution:"Newswire — Business Wire",
+     embargo:true,embargoDate:d(17),embargoTime:"06:00"},
+    {title:"Monthly employee newsletter — October",type:"Internal employee comms",channel:"Newsletter",
+     audience:"All employees",sendDate:d(34),requester:"Comms team",owner:"Nic Marcopul",status:"Draft",
+     desc:"Wins, new hires, upcoming events, and a note from the exec sponsor.",
+     approver:"Comms lead",reviewDeadline:d(29),approvalStatus:"Not started",legal:false},
+    {title:"Leadership briefing: reorg talking points",type:"Executive / leadership",channel:"Intranet / Confluence",
+     audience:"Leadership / managers",sendDate:d(-5),requester:"HRBP",owner:"Comms team",status:"Sent",
+     desc:"Manager FAQ and talking points ahead of the org announcement.",
+     approver:"CHRO",reviewDeadline:d(-9),approvalStatus:"Approved",legal:true}
+  ].map(withId);
+}
+var nextId=1;
+function withId(o){ o.id="c"+(nextId++)+"-"+Math.random().toString(36).slice(2,7); o.createdAt=new Date().toISOString(); return o; }
+
+var items = load();
+if(items===null){ items = seed(); mem=1; save(); } else { mem=1; }
+if(!Array.isArray(items)) items = seed();
+
+/* migrate entries saved under the older 3-type taxonomy */
+(function(){
+  var changed=false;
+  items.forEach(function(it){
+    if(TYPE_ALIAS[it.type]){
+      var ch=it.channel||"";
+      it.type = /^Social/.test(ch) ? "Social media"
+              : (ch==="Press release" ? "External / press" : TYPE_ALIAS[it.type]);
+      changed=true;
+    }
+    if(!Array.isArray(it.platforms)) it.platforms=[];
+    if(!Array.isArray(it.files)) it.files=[];
+  });
+  if(changed) save();
+})();
+
+/* ---------- helpers ---------- */
+function pad(n){ return n<10?"0"+n:""+n; }
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+function parseD(s){ if(!s) return null; var p=s.split("-"); return new Date(+p[0],+p[1]-1,+p[2]); }
+function fmtD(s){ var d=parseD(s); if(!d) return "—";
+  return d.toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"}); }
+function todayISO(){ var t=new Date(); return t.getFullYear()+"-"+pad(t.getMonth()+1)+"-"+pad(t.getDate()); }
+function typeColor(t){ return "var(--t-"+(TYPE_KEY[t]||"internal")+")"; }
+function typeBg(t){ return "var(--t-"+(TYPE_KEY[t]||"internal")+"-bg)"; }
+function typePill(t){ return '<span class="pill" style="background:'+typeBg(t)+';color:'+typeColor(t)+'">'+esc(t)+'</span>'; }
+function statusPill(s){
+  var m={"Draft":["var(--mute)","var(--mute-bg)"],"In review":["var(--warn)","var(--warn-bg)"],
+         "Approved":["var(--ok)","var(--ok-bg)"],"Scheduled":["var(--accent)","var(--accent-soft)"],
+         "Sent":["var(--ok)","var(--ok-bg)"],"Cancelled":["var(--stop)","var(--stop-bg)"]};
+  var c=m[s]||m["Draft"];
+  return '<span class="pill" style="color:'+c[0]+';background:'+c[1]+'">'+esc(s)+'</span>';
+}
+function approvalPill(a){
+  var m={"Not started":["var(--mute)","var(--mute-bg)"],"Pending approver":["var(--warn)","var(--warn-bg)"],
+         "Approved":["var(--ok)","var(--ok-bg)"],"Changes requested":["var(--stop)","var(--stop-bg)"]};
+  var c=m[a]||m["Not started"];
+  return '<span class="pill" style="color:'+c[0]+';background:'+c[1]+'">'+esc(a)+'</span>';
+}
+function $(id){ return document.getElementById(id); }
+function fmtBytes(b){
+  if(b==null) return "";
+  if(b<1024) return b+" B";
+  if(b<1048576) return (b/1024).toFixed(0)+" KB";
+  return (b/1048576).toFixed(1)+" MB";
+}
+function extOf(n){ var i=String(n||"").lastIndexOf("."); return i>-1?n.slice(i+1).toUpperCase().slice(0,4):"FILE"; }
+function isImg(f){ return /^image\//.test(f.mime||""); }
+function fmtT(t){
+  if(!t) return "";
+  var p=t.split(":"), h=+p[0], m=p[1]||"00", ap=h<12?"am":"pm", hh=h%12; if(hh===0) hh=12;
+  return hh+":"+m+" "+ap;
+}
+
+/* ---------- tabs ---------- */
+var views={"tab-form":"v-form","tab-cal":"v-cal","tab-grid":"v-grid"};
+function show(tabId){
+  Object.keys(views).forEach(function(t){
+    var sel=t===tabId;
+    $(t).setAttribute("aria-selected",sel?"true":"false");
+    $(views[t]).hidden=!sel;
+  });
+  if(tabId==="tab-cal") renderCal();
+  if(tabId==="tab-grid") renderGrid();
+}
+Object.keys(views).forEach(function(t){ $(t).addEventListener("click",function(){ show(t); }); });
+
+/* ---------- form ---------- */
+var form=$("intake"), editingId=null;
+var REQ=[["f-title","e-title"],["f-type","e-type"],["f-channel","e-channel"],
+         ["f-audience","e-audience"],["f-date","e-date"],["f-requester","e-requester"]];
+
+/* platform chips */
+(function(){
+  var box=$("platforms");
+  box.innerHTML=PLATFORMS.map(function(p,i){
+    var id="plat-"+i;
+    return '<label class="chip" for="'+id+'"><input type="checkbox" id="'+id+'" value="'+esc(p)+'">'+esc(p)+"</label>";
+  }).join("");
+})();
+function getPlatforms(){
+  return Array.prototype.slice.call(document.querySelectorAll("#platforms input:checked"))
+    .map(function(c){ return c.value; });
+}
+function setPlatforms(list){
+  list=list||[];
+  Array.prototype.forEach.call(document.querySelectorAll("#platforms input"),function(c){
+    c.checked=list.indexOf(c.value)>-1;
+  });
+}
+
+/* conditional sections */
+function syncConditional(){
+  var t=$("f-type").value;
+  $("fs-social").hidden = t!=="Social media";
+  $("fs-press").hidden  = t!=="External / press";
+  $("wrap-budget").hidden = ["Boosted","Paid campaign"].indexOf($("f-paid").value)===-1;
+  var emb=$("f-embargo").checked;
+  $("wrap-embargo-date").hidden = !emb;
+  $("wrap-embargo-time").hidden = !emb;
+}
+["f-type","f-paid"].forEach(function(id){ $(id).addEventListener("change",syncConditional); });
+$("f-embargo").addEventListener("change",syncConditional);
+$("f-type").addEventListener("change",function(){
+  /* nudge the channel to match the type on a fresh pick */
+  var t=$("f-type").value;
+  if(!$("f-channel").value){
+    if(t==="Social media") $("f-channel").value="Social (LinkedIn/X)";
+    if(t==="External / press") $("f-channel").value="Press release";
+  }
+});
+
+function clearErrors(){
+  REQ.forEach(function(p){ $(p[0]).classList.remove("err"); $(p[1]).classList.remove("on"); });
+  ["f-reviewdate","f-release","f-dist","f-embargodate","f-enddate"].forEach(function(id){ $(id).classList.remove("err"); });
+  ["e-reviewdate","e-release","e-dist","e-embargodate","e-platforms","e-enddate"].forEach(function(id){ $(id).classList.remove("on"); });
+}
+function validate(){
+  clearErrors(); var ok=true, first=null;
+  function fail(el,msgId){ if(el) el.classList.add("err"); $(msgId).classList.add("on"); ok=false; first=first||el; }
+  REQ.forEach(function(p){
+    if(!$(p[0]).value.trim()) fail($(p[0]),p[1]);
+  });
+  var sd=$("f-date").value, ed=$("f-enddate").value, rd=$("f-reviewdate").value;
+  if(sd&&ed&&ed<sd) fail($("f-enddate"),"e-enddate");
+  if(sd&&rd&&rd>sd) fail($("f-reviewdate"),"e-reviewdate");
+
+  var t=$("f-type").value;
+  if(t==="Social media" && getPlatforms().length===0) fail(null,"e-platforms");
+  if(t==="External / press"){
+    if(!$("f-release").value) fail($("f-release"),"e-release");
+    if(!$("f-dist").value) fail($("f-dist"),"e-dist");
+    if($("f-embargo").checked && !$("f-embargodate").value) fail($("f-embargodate"),"e-embargodate");
+  }
+  if(first) first.focus();
+  return ok;
+}
+/* ---------- attachments ---------- */
+var MAX_FILES=5, MAX_BYTES=4*1024*1024, pending=[];
+function fileErr(msg){
+  var e=$("e-files");
+  if(msg){ e.textContent=msg; e.classList.add("on"); } else { e.textContent=""; e.classList.remove("on"); }
+}
+function renderFiles(){
+  var ul=$("fileList"), h="";
+  pending.forEach(function(f,i){
+    h+="<li>"+(isImg(f)
+        ? '<img class="thumb" src="'+f.data+'" alt="">'
+        : '<span class="ficon">'+esc(extOf(f.name))+"</span>")+
+      '<span class="fmeta"><span class="fname">'+esc(f.name)+'</span>'+
+      '<span class="fsize">'+fmtBytes(f.size)+"</span></span>"+
+      '<button type="button" class="btn btn-s btn-xs" data-rm="'+i+'">Remove</button></li>';
+  });
+  ul.innerHTML=h;
+}
+function addFiles(list){
+  var arr=Array.prototype.slice.call(list||[]), problems=[];
+  arr.forEach(function(file){
+    if(pending.length>=MAX_FILES){ problems.push("only "+MAX_FILES+" files per request"); return; }
+    if(file.size>MAX_BYTES){ problems.push("“"+file.name+"” is "+fmtBytes(file.size)+" (4 MB max) — link it instead"); return; }
+    var r=new FileReader();
+    r.onload=function(){
+      pending.push({name:file.name,mime:file.type||"",size:file.size,data:r.result});
+      renderFiles();
+    };
+    r.onerror=function(){ fileErr("Couldn’t read “"+file.name+"”."); };
+    r.readAsDataURL(file);
+  });
+  fileErr(problems.length?problems.join("; ")+".":"");
+}
+$("browseBtn").addEventListener("click",function(){ $("f-files").click(); });
+$("f-files").addEventListener("change",function(e){ addFiles(e.target.files); e.target.value=""; });
+$("fileList").addEventListener("click",function(e){
+  var b=e.target.closest("[data-rm]"); if(!b) return;
+  pending.splice(+b.getAttribute("data-rm"),1); renderFiles(); fileErr("");
+});
+(function(){
+  var d=$("drop");
+  ["dragenter","dragover"].forEach(function(ev){
+    d.addEventListener(ev,function(e){ e.preventDefault(); d.classList.add("over"); });
+  });
+  ["dragleave","drop"].forEach(function(ev){
+    d.addEventListener(ev,function(e){ e.preventDefault(); d.classList.remove("over"); });
+  });
+  d.addEventListener("drop",function(e){ if(e.dataTransfer&&e.dataTransfer.files) addFiles(e.dataTransfer.files); });
+})();
+
+function readForm(){
+  return {title:$("f-title").value.trim(),type:$("f-type").value,channel:$("f-channel").value,
+    audience:$("f-audience").value,sendDate:$("f-date").value,endDate:$("f-enddate").value,
+    desc:$("f-desc").value.trim(),
+    requester:$("f-requester").value.trim(),owner:$("f-owner").value.trim()||$("f-requester").value.trim(),
+    status:$("f-status").value,approver:$("f-approver").value.trim(),
+    reviewDeadline:$("f-reviewdate").value,approvalStatus:$("f-approval").value,legal:$("f-legal").checked,
+    assetLink:$("f-link").value.trim(),files:pending.slice(),
+    /* social */
+    platforms:$("f-type").value==="Social media"?getPlatforms():[],
+    postTime:$("f-type").value==="Social media"?$("f-posttime").value:"",
+    paid:$("f-type").value==="Social media"?$("f-paid").value:"",
+    budget:($("f-type").value==="Social media"&&!$("wrap-budget").hidden)?$("f-budget").value.trim():"",
+    segment:$("f-type").value==="Social media"?$("f-segment").value.trim():"",
+    /* press */
+    releaseType:$("f-type").value==="External / press"?$("f-release").value:"",
+    distribution:$("f-type").value==="External / press"?$("f-dist").value:"",
+    embargo:$("f-type").value==="External / press"&&$("f-embargo").checked,
+    embargoDate:($("f-type").value==="External / press"&&$("f-embargo").checked)?$("f-embargodate").value:"",
+    embargoTime:($("f-type").value==="External / press"&&$("f-embargo").checked)?$("f-embargotime").value:""};
+}
+function fillForm(it){
+  $("f-id").value=it.id; $("f-title").value=it.title||""; $("f-type").value=it.type||"";
+  $("f-channel").value=it.channel||""; $("f-audience").value=it.audience||"";
+  $("f-date").value=it.sendDate||""; $("f-enddate").value=it.endDate||""; $("f-desc").value=it.desc||"";
+  $("f-requester").value=it.requester||""; $("f-owner").value=it.owner||"";
+  $("f-status").value=it.status||"Draft"; $("f-approver").value=it.approver||"";
+  $("f-reviewdate").value=it.reviewDeadline||""; $("f-approval").value=it.approvalStatus||"Not started";
+  $("f-legal").checked=!!it.legal;
+  $("f-link").value=it.assetLink||"";
+  setPlatforms(it.platforms); $("f-posttime").value=it.postTime||"";
+  $("f-paid").value=it.paid||"Organic"; $("f-budget").value=it.budget||"";
+  $("f-segment").value=it.segment||"";
+  $("f-release").value=it.releaseType||""; $("f-dist").value=it.distribution||"";
+  $("f-embargo").checked=!!it.embargo; $("f-embargodate").value=it.embargoDate||"";
+  $("f-embargotime").value=it.embargoTime||"";
+  syncConditional();
+  pending=(it.files||[]).slice(); renderFiles(); fileErr("");
+}
+function resetForm(){
+  form.reset(); $("f-id").value=""; editingId=null; clearErrors();
+  setPlatforms([]); syncConditional();
+  pending=[]; renderFiles(); fileErr("");
+  $("formHeading").textContent="New communication request";
+  $("submitBtn").textContent="Submit request";
+  $("cancelEdit").style.display="none";
+}
+function flash(msg){
+  var f=$("flash"); f.textContent=msg; f.classList.add("on");
+  clearTimeout(flash._t); flash._t=setTimeout(function(){ f.classList.remove("on"); },4500);
+}
+form.addEventListener("submit",function(e){
+  e.preventDefault();
+  if(!validate()) return;
+  var data=readForm();
+  if(editingId){
+    for(var i=0;i<items.length;i++){ if(items[i].id===editingId){
+      data.id=editingId; data.createdAt=items[i].createdAt; items[i]=data; break; } }
+    flash("Updated “"+data.title+"”.");
+  }else{
+    items.push(withId(data));
+    var n=data.files.length;
+    flash("Added “"+data.title+"” to the schedule for "+fmtD(data.sendDate)+
+          (n?" with "+n+" attachment"+(n>1?"s":"")+".":"."));
+  }
+  if(!save()&&quotaHit) flash("Saved for this session, but browser storage is full — remove some attachments or use the link field so it persists.");
+  resetForm(); renderCal(); renderGrid();
+  window.scrollTo({top:0,behavior:"smooth"});
+});
+$("resetBtn").addEventListener("click",resetForm);
+$("cancelEdit").addEventListener("click",resetForm);
+
+function startEdit(id){
+  var it=items.filter(function(x){return x.id===id;})[0]; if(!it) return;
+  fillForm(it); editingId=id;
+  $("formHeading").textContent="Editing: "+it.title;
+  $("submitBtn").textContent="Save changes";
+  $("cancelEdit").style.display="inline-block";
+  closeModal(); show("tab-form"); window.scrollTo({top:0,behavior:"smooth"});
+}
+
+/* ---------- calendar ---------- */
+var cur=new Date(); cur.setDate(1);
+var DOW=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+var LEGEND_LABEL={"Internal employee comms":"Internal","Marketing campaign":"Marketing",
+                  "Social media":"Social","External / press":"Press","Executive / leadership":"Executive","Events":"Events"};
+$("legend").innerHTML=TYPES.map(function(t){
+  return '<span><span class="dot" style="background:'+typeColor(t)+
+         ';display:inline-block;margin-right:5px"></span>'+esc(LEGEND_LABEL[t])+"</span>";
+}).join("");
+function renderCal(){
+  var y=cur.getFullYear(), m=cur.getMonth();
+  $("calTitle").textContent=cur.toLocaleDateString(undefined,{month:"long",year:"numeric"});
+  var start=new Date(y,m,1), lead=start.getDay();
+  var grid=$("cal"), html="";
+  DOW.forEach(function(d){ html+='<div class="dow">'+d+"</div>"; });
+  var first=new Date(y,m,1-lead);
+  var byDay={};
+  items.forEach(function(it){
+    if(!it.sendDate) return;
+    var sd=parseD(it.sendDate), ed=it.endDate?parseD(it.endDate):sd;
+    if(!sd||!ed) return;
+    for(var d=new Date(sd); d<=ed; d.setDate(d.getDate()+1)){
+      var iso=d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+      (byDay[iso]=byDay[iso]||[]).push(it);
+    }
+  });
+  var tISO=todayISO();
+  var dim=new Date(y,m+1,0).getDate();
+  var cells=Math.ceil((lead+dim)/7)*7;
+  for(var i=0;i<cells;i++){
+    var d=new Date(first.getFullYear(),first.getMonth(),first.getDate()+i);
+    var iso=d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+    var out=d.getMonth()!==m;
+    html+='<div class="day'+(out?" out":"")+(iso===tISO?" today":"")+'">'+
+          '<span class="daynum">'+d.getDate()+"</span>";
+    function tkey(x){ return x.postTime || (x.embargo?x.embargoTime:"") || "99:99"; }
+    var dayEvents=byDay[iso]||[];
+    dayEvents.sort(function(a,b){
+      var d=tkey(a).localeCompare(tkey(b)); return d||a.title.localeCompare(b.title);
+    });
+    dayEvents.forEach(function(it){
+      var t=it.postTime||(it.embargo?it.embargoTime:"");
+      var tip=it.title+" — "+it.status+(it.type==="Social media"&&it.platforms&&it.platforms.length?
+              " · "+it.platforms.join(", "):"")+(it.embargo?" · embargoed":"");
+      if(it.endDate&&it.endDate!==it.sendDate) tip+=" ("+fmtD(it.sendDate)+" – "+fmtD(it.endDate)+")";
+      html+='<button class="ev'+(it.status==="Cancelled"?" cancelled":"")+'" data-id="'+it.id+'" '+
+            'style="background:'+typeBg(it.type)+';color:'+typeColor(it.type)+';border-left-color:'+typeColor(it.type)+'" '+
+            'title="'+esc(tip)+'">'+(t?"<b>"+esc(fmtT(t))+"</b> ":"")+esc(it.title)+"</button>";
+    });
+    html+="</div>";
+  }
+  grid.innerHTML=html;
+}
+$("prevM").addEventListener("click",function(){ cur.setMonth(cur.getMonth()-1); renderCal(); });
+$("nextM").addEventListener("click",function(){ cur.setMonth(cur.getMonth()+1); renderCal(); });
+$("todayBtn").addEventListener("click",function(){ cur=new Date(); cur.setDate(1); renderCal(); });
+$("cal").addEventListener("click",function(e){
+  var b=e.target.closest(".ev"); if(b) openModal(b.getAttribute("data-id"));
+});
+
+/* ---------- grid ---------- */
+var sortK="sendDate", sortDir=1;
+function fillOpts(sel,arr){
+  arr.forEach(function(v){ var o=document.createElement("option"); o.textContent=v; sel.appendChild(o); });
+}
+fillOpts($("fType"),TYPES); fillOpts($("fStatus"),STATUSES); fillOpts($("fChannel"),CHANNELS);
+fillOpts($("fPlatform"),PLATFORMS);
+
+function filtered(){
+  var q=$("q").value.trim().toLowerCase(), ft=$("fType").value, fs=$("fStatus").value,
+      fc=$("fChannel").value, fp=$("fPlatform").value, fw=$("fWindow").value, t=todayISO();
+  return items.filter(function(it){
+    if(ft&&it.type!==ft) return false;
+    if(fs&&it.status!==fs) return false;
+    if(fc&&it.channel!==fc) return false;
+    if(fp&&(!it.platforms||it.platforms.indexOf(fp)===-1)) return false;
+    var ed=it.endDate||it.sendDate;
+    if(fw==="upcoming"&&ed<t) return false;
+    if(fw==="past"&&it.sendDate>=t) return false;
+    if(fw==="30"||fw==="90"){
+      var lim=new Date(); lim.setDate(lim.getDate()+ +fw);
+      var limISO=lim.getFullYear()+"-"+pad(lim.getMonth()+1)+"-"+pad(lim.getDate());
+      if(it.sendDate<t||it.sendDate>limISO) return false;
+    }
+    if(q){
+      var hay=[it.title,it.owner,it.requester,it.desc,it.approver,it.audience,
+               it.releaseType,it.distribution,it.segment,(it.platforms||[]).join(" ")].join(" ").toLowerCase();
+      if(hay.indexOf(q)===-1) return false;
+    }
+    return true;
+  }).sort(function(a,b){
+    var x=(a[sortK]||"")+"", y=(b[sortK]||"")+"";
+    if(x===y) return (a.sendDate||"").localeCompare(b.sendDate||"");
+    return x.localeCompare(y)*sortDir;
+  });
+}
+function renderGrid(){
+  var rows=filtered(), h="";
+  rows.forEach(function(it){
+    var late = it.reviewDeadline && it.reviewDeadline < todayISO() &&
+               it.approvalStatus!=="Approved" && it.status!=="Sent" && it.status!=="Cancelled";
+    var dateStr = fmtD(it.sendDate) + (it.endDate && it.endDate !== it.sendDate ? " – " + fmtD(it.endDate) : "");
+    h+="<tr>"+
+      '<td class="nowrap"><strong>'+dateStr+"</strong>"+
+        (it.postTime?'<div class="t-desc">'+esc(fmtT(it.postTime))+"</div>":"")+"</td>"+
+      '<td><div class="t-title">'+esc(it.title)+
+        (it.legal?' <span class="pill" style="color:var(--warn);background:var(--warn-bg)">legal</span>':"")+
+        ((it.files&&it.files.length)?' <span class="clip" title="'+it.files.length+' attachment(s)">&#128206;'+it.files.length+"</span>":"")+
+        (it.assetLink?' <span class="clip" title="Asset link attached">&#128279;</span>':"")+
+        (it.embargo?' <span class="pill" style="color:var(--t-press);background:var(--t-press-bg)">embargo</span>':"")+
+        ((it.paid&&it.paid!=="Organic")?' <span class="pill" style="color:var(--t-social);background:var(--t-social-bg)">'+esc(it.paid.toLowerCase())+"</span>":"")+
+        "</div>"+
+        ((it.platforms&&it.platforms.length)?'<div class="platlist">'+it.platforms.map(function(p){
+          return '<span class="pill" style="color:var(--t-social);background:var(--t-social-bg)">'+esc(p)+"</span>";
+        }).join("")+"</div>":"")+
+        (it.releaseType?'<div class="t-desc">'+esc(it.releaseType)+
+          (it.distribution?" · "+esc(it.distribution):"")+"</div>":"")+
+        (it.desc?'<div class="t-desc">'+esc(it.desc)+"</div>":"")+"</td>"+
+      "<td>"+typePill(it.type)+"</td>"+
+      "<td>"+esc(it.channel)+"</td>"+
+      "<td>"+esc(it.audience)+"</td>"+
+      "<td>"+esc(it.owner||"—")+"</td>"+
+      "<td>"+statusPill(it.status)+"</td>"+
+      "<td>"+approvalPill(it.approvalStatus)+
+        (late?'<div class="t-desc" style="color:var(--warn)">review overdue</div>':"")+"</td>"+
+      '<td class="nowrap"><button class="btn btn-s btn-xs" data-open="'+it.id+'">View</button></td>'+
+    "</tr>";
+  });
+  $("tbody").innerHTML=h;
+  $("gridEmpty").style.display=rows.length?"none":"block";
+  $("rowCount").textContent=rows.length+" of "+items.length+" shown";
+  Array.prototype.forEach.call(document.querySelectorAll("#tbl th.sortable"),function(th){
+    th.querySelector(".arrow").textContent = th.getAttribute("data-k")===sortK ? (sortDir===1?"▲":"▼") : "";
+  });
+}
+Array.prototype.forEach.call(document.querySelectorAll("#tbl th.sortable"),function(th){
+  th.addEventListener("click",function(){
+    var k=th.getAttribute("data-k");
+    if(k===sortK) sortDir=-sortDir; else { sortK=k; sortDir=1; }
+    renderGrid();
+  });
+});
+["q","fType","fStatus","fChannel","fPlatform","fWindow"].forEach(function(id){
+  $(id).addEventListener("input",renderGrid); $(id).addEventListener("change",renderGrid);
+});
+$("tbody").addEventListener("click",function(e){
+  var b=e.target.closest("[data-open]"); if(b) openModal(b.getAttribute("data-open"));
+});
+
+/* ---------- CSV ---------- */
+$("exportBtn").addEventListener("click",function(){
+  var cols=[["sendDate","Send date"],["endDate","End date"],["postTime","Post time"],["title","Title"],["type","Type"],
+    ["channel","Channel"],["audience","Audience"],
+    ["platforms","Platforms"],["paid","Organic/paid"],["budget","Budget"],["segment","Target segment"],
+    ["releaseType","Release type"],["distribution","Distribution"],["embargo","Embargoed"],
+    ["embargoDate","Embargo lifts"],["embargoTime","Embargo time"],
+    ["requester","Requested by"],["owner","Owner"],["status","Status"],
+    ["approver","Approver"],["reviewDeadline","Review deadline"],["approvalStatus","Approval status"],
+    ["legal","Legal review"],["desc","Description"],["assetLink","Asset link"],["files","Attachments"]];
+  function q(v){ if(v===true) return "Yes"; if(v===false) return "No";
+    if(Array.isArray(v)) v=v.map(function(f){return (f&&f.name)?f.name:f;}).join("; ");
+    v=v==null?"":String(v); return '"'+v.replace(/"/g,'""')+'"'; }
+  var lines=[cols.map(function(c){return q(c[1]);}).join(",")];
+  filtered().forEach(function(it){ lines.push(cols.map(function(c){return q(it[c[0]]);}).join(",")); });
+  var blob=new Blob(["﻿"+lines.join("\r\n")],{type:"text/csv;charset=utf-8;"});
+  var a=document.createElement("a");
+  a.href=URL.createObjectURL(blob); a.download="comms-schedule-"+todayISO()+".csv";
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(a.href); },1500);
+});
+
+/* ---------- modal ---------- */
+var openId=null;
+function openModal(id){
+  var it=items.filter(function(x){return x.id===id;})[0]; if(!it) return;
+  openId=id;
+  $("mTitle").textContent=it.title;
+  $("mPills").innerHTML=typePill(it.type)+" "+statusPill(it.status)+" "+approvalPill(it.approvalStatus);
+  var late = it.reviewDeadline && it.reviewDeadline<todayISO() &&
+             it.approvalStatus!=="Approved" && it.status!=="Sent" && it.status!=="Cancelled";
+  $("mBody").innerHTML=
+    "<dl class='kv'>"+
+    "<dt>Send date</dt><dd><strong>"+fmtD(it.sendDate)+(it.endDate&&it.endDate!==it.sendDate?" – "+fmtD(it.endDate):"")+
+    "</strong></dd>"+
+    "<dt>Channel</dt><dd>"+esc(it.channel)+"</dd>"+
+    "<dt>Audience</dt><dd>"+esc(it.audience)+"</dd>"+
+    (it.type==="Social media"?
+      "<dt>Platforms</dt><dd>"+((it.platforms&&it.platforms.length)?
+        it.platforms.map(function(p){
+          return '<span class="pill" style="color:var(--t-social);background:var(--t-social-bg)">'+esc(p)+"</span>";
+        }).join(" "):"—")+"</dd>"+
+      (it.postTime?"<dt>Post time</dt><dd>"+esc(fmtT(it.postTime))+"</dd>":"")+
+      (it.paid?"<dt>Spend</dt><dd>"+esc(it.paid)+(it.budget?" — "+esc(it.budget):"")+"</dd>":"")+
+      (it.segment?"<dt>Target segment</dt><dd>"+esc(it.segment)+"</dd>":"")
+      :"")+
+    (it.type==="External / press"?
+      (it.releaseType?"<dt>Release type</dt><dd>"+esc(it.releaseType)+"</dd>":"")+
+      (it.distribution?"<dt>Distribution</dt><dd>"+esc(it.distribution)+"</dd>":"")+
+      "<dt>Embargo</dt><dd>"+(it.embargo
+        ? "Lifts "+fmtD(it.embargoDate)+(it.embargoTime?" at "+esc(fmtT(it.embargoTime)):"")
+        : "Not embargoed")+"</dd>"
+      :"")+
+    "<dt>Requested by</dt><dd>"+esc(it.requester||"—")+"</dd>"+
+    "<dt>Comms owner</dt><dd>"+esc(it.owner||"—")+"</dd>"+
+    "<dt>Approver</dt><dd>"+esc(it.approver||"—")+"</dd>"+
+    "<dt>Review deadline</dt><dd>"+(it.reviewDeadline?fmtD(it.reviewDeadline):"—")+"</dd>"+
+    "<dt>Legal review</dt><dd>"+(it.legal?"Required":"Not required")+"</dd>"+
+    (it.desc?"<dt>Description</dt><dd>"+esc(it.desc)+"</dd>":"")+
+    (it.assetLink?"<dt>Asset link</dt><dd><a href=’"+esc(it.assetLink)+"’ target=’_blank’ rel=’noopener noreferrer’ style=’color:var(--accent)’>"+esc(it.assetLink)+"</a></dd>":"")+
+    ((it.files&&it.files.length)?"<dt>Attachments</dt><dd><div class=’att-grid’>"+
+      it.files.map(function(f){
+        return "<div><a href=’"+f.data+"’ download=’"+esc(f.name)+"’>"+esc(f.name)+"</a> "+
+               "<span class=’fsize’>("+fmtBytes(f.size)+")</span>"+
+               (isImg(f)?"<img class=’att-img’ src=’"+f.data+"’ alt=’"+esc(f.name)+"’>":"")+"</div>";
+      }).join("")+"</div></dd>":"")+
+    "</dl>"+
+    (late?"<div class=\"banner\">Review deadline has passed - approval pending.</div>":"")+
+    (it.approver?"<div style=\"margin-top:20px;padding-top:20px;border-top:1px solid var(--line-2)\"><div style=\"font-weight:600;margin-bottom:10px;font-size:12px;color:var(--ink-3);text-transform:uppercase\">Share approval request</div><div class=\"link-group\"><input type=\"text\" class=\"link-input\" id=\"approvalLink\" readonly><button class=\"copy-btn\" id=\"copyApprovalBtn\">Copy link</button></div><p style=\"font-size:12px;color:var(--ink-3);margin-top:8px\">Send this link to "+esc(it.approver)+" for quick approval updates.</p></div>":"");
+  $("scrim").classList.add("on");
+  $("mDone").focus();
+
+  /* generate approval link */
+  if(it.approver){
+    var linkEl=$("approvalLink"), copyBtn=$("copyApprovalBtn");
+    if(linkEl&&copyBtn){
+      var baseUrl=window.location.origin+window.location.pathname;
+      var approvalLink=baseUrl+"?approval="+it.id+"&approver="+encodeURIComponent(it.approver);
+      linkEl.value=approvalLink;
+      copyBtn.onclick=function(){
+        linkEl.select();
+        document.execCommand("copy");
+        copyBtn.textContent="Copied!";
+        copyBtn.classList.add("copied");
+        setTimeout(function(){ copyBtn.textContent="Copy link"; copyBtn.classList.remove("copied"); },2000);
+      };
+    }
+  }
+}
+function closeModal(){ $("scrim").classList.remove("on"); openId=null; }
+$("mClose").addEventListener("click",closeModal);
+$("mDone").addEventListener("click",closeModal);
+$("scrim").addEventListener("click",function(e){ if(e.target===$("scrim")) closeModal(); });
+document.addEventListener("keydown",function(e){ if(e.key==="Escape"&&openId) closeModal(); });
+$("mEdit").addEventListener("click",function(){ if(openId) startEdit(openId); });
+$("mDelete").addEventListener("click",function(){
+  if(!openId) return;
+  var it=items.filter(function(x){return x.id===openId;})[0];
+  items=items.filter(function(x){return x.id!==openId;});
+  save(); closeModal(); renderCal(); renderGrid();
+  if(it) flash("Removed “"+it.title+"”.");
+  show("tab-form");
+});
+
+/* ---------- approval view ---------- */
+function showApprovalView(itemId,approverName){
+  var it=items.filter(function(x){return x.id===itemId;})[0];
+  if(!it) return;
+  $("approvalView").classList.add("active");
+  $("mainHeader").style.display="none";
+  $("v-form").hidden=true; $("v-cal").hidden=true; $("v-grid").hidden=true;
+  var html='<div class="approval-title">'+esc(it.title)+'</div>'+
+           '<div class="approval-meta">Approval needed from: <strong>'+esc(approverName)+'</strong></div>'+
+           '<dl class="kv">'+
+           '<dt>Send date</dt><dd><strong>'+fmtD(it.sendDate)+(it.endDate&&it.endDate!==it.sendDate?" – "+fmtD(it.endDate):"")+'</strong></dd>'+
+           '<dt>Channel</dt><dd>'+esc(it.channel)+'</dd>'+
+           '<dt>Audience</dt><dd>'+esc(it.audience)+'</dd>'+
+           '<dt>Approver</dt><dd>'+esc(it.approver)+'</dd>'+
+           '<dt>Review deadline</dt><dd>'+(it.reviewDeadline?fmtD(it.reviewDeadline):"—")+'</dd>'+
+           '<dt>Current status</dt><dd>'+approvalPill(it.approvalStatus)+'</dd>'+
+           (it.desc?'<dt>Description</dt><dd>'+esc(it.desc)+'</dd>':'')+
+           '</dl>'+
+           '<div class="approval-buttons">'+
+           '<button class="btn btn-s" id="aStatusPending">Mark Pending</button>'+
+           '<button class="btn btn-s" id="aStatusChanges">Changes Needed</button>'+
+           '<button class="btn btn-p" id="aStatusApproved">Approve</button>'+
+           '</div>';
+  $("approvalContent").innerHTML=html;
+  $("aStatusPending").addEventListener("click",function(){ updateApprovalStatus(itemId,"Pending approver"); });
+  $("aStatusChanges").addEventListener("click",function(){ updateApprovalStatus(itemId,"Changes requested"); });
+  $("aStatusApproved").addEventListener("click",function(){ updateApprovalStatus(itemId,"Approved"); });
+}
+function updateApprovalStatus(itemId,status){
+  var it=items.filter(function(x){return x.id===itemId;})[0];
+  if(!it) return;
+  it.approvalStatus=status;
+  save();
+  var content=$("approvalContent");
+  content.innerHTML='<div style="text-align:center;padding:40px 20px">'+
+                    '<div style="font-size:18px;font-weight:600;color:var(--ok);margin-bottom:8px">✓ Status updated</div>'+
+                    '<div style="color:var(--ink-2)">'+esc(it.title)+' marked as <strong>'+esc(status)+'</strong></div>'+
+                    '<div style="margin-top:20px;font-size:12px;color:var(--ink-3)">You can close this window or share the link again.</div>'+
+                    '</div>';
+}
+
+/* ---------- init ---------- */
+note(); syncConditional(); renderCal(); renderGrid();
+
+/* check for approval link */
+(function(){
+  var params=new URLSearchParams(window.location.search);
+  if(params.has("approval")){
+    var itemId=params.get("approval"), approver=params.get("approver")||"Approver";
+    showApprovalView(itemId,approver);
+  }
+})();
+})();
+</script>
+</body>
+</html>
